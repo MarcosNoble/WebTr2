@@ -1,64 +1,40 @@
-// Get the GitHub username input form
-const gitHubForm = document.getElementById('gitHubForm');
+function fetchQuestion() {
+    fetch("https://quizapi.io/api/v1/questions?apiKey=SEzVACg9eCGTTmfHeqOj0x3xG6XlmyOb04DTgitf&limit=1")
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        const pergunta = data[0].question;
+        const respostas = Object.values(data[0].answers);
+        const respostasBool = Object.values(data[0].correct_answers);
+        const multipla = data[0].multiple_correct_answers;
+        console.log(multipla) //saber se é de multipla escolha
 
-// Listen for submissions on GitHub username input form
-gitHubForm.addEventListener('submit', (e) => {
+        //Mostra a pergunta no elemento 
+        document.getElementById("caixaPergunta").textContent = pergunta;
 
-    // Prevent default form submission action
-    e.preventDefault();
+        //Limpa as opções 
+        const answerContainer = document.getElementById("listaRespostas");
+        //answerContainer.innerHTML="";
+        while (answerContainer.firstChild) {
+            answerContainer.removeChild(answerContainer.firstChild);
+        }
 
-    // Get the GitHub username input field on the DOM
-    let usernameInput = document.getElementById('usernameInput');
-
-    // Get the value of the GitHub username input field
-    let gitHubUsername = usernameInput.value;
-
-    // Run GitHub API function, passing in the GitHub username
-    requestUserRepos(gitHubUsername)
-        .then(response => response.json()) // parse response into json
-        .then(data => {
-            // update html with data from github
-            for (let i in data) {
-                // Get the ul with id of userRepos
-
-                if (data.message === "Not Found") {
-                    let ul = document.getElementById('userRepos');
-
-                    // Create variable that will create li's to be added to ul
-                    let li = document.createElement('li');
-
-                    // Add Bootstrap list item class to each li
-                    li.classList.add('list-group-item')
-                    // Create the html markup for each li
-                    li.innerHTML = (`
-                <p><strong>No account exists with username:</strong> ${gitHubUsername}</p>`);
-                    // Append each li to the ul
-                    ul.appendChild(li);
-                } else {
-
-                    let ul = document.getElementById('userRepos');
-
-                    // Create variable that will create li's to be added to ul
-                    let li = document.createElement('li');
-
-                    // Add Bootstrap list item class to each li
-                    li.classList.add('list-group-item')
-
-                    // Create the html markup for each li
-                    li.innerHTML = (`
-                <p><strong>Repo:</strong> ${data[i].name}</p>
-                <p><strong>Description:</strong> ${data[i].description}</p>
-                <p><strong>URL:</strong> <a href="${data[i].html_url}">${data[i].html_url}</a></p>
-            `);
-
-                    // Append each li to the ul
-                    ul.appendChild(li);
-                }
+        // Create and append answer elements
+        respostas.forEach(answer => {
+            if(answer != null){
+                const answerElement = document.createElement("li");
+                answerElement.textContent = answer;
+                answerElement.addEventListener('click', () => {     
+                    if(answerContainer.querySelector('.selected')){
+                        const activeOption = answerContainer.querySelector('.selected');
+                        activeOption.classList.remove('selected');
+                    }
+                    answerElement.classList.add('selected');                                            
+                });                    
+                answerContainer.appendChild(answerElement);
             }
-        })
-})
-
-function requestUserRepos(username) {
-    // create a variable to hold the `Promise` returned from `fetch`
-    return Promise.resolve(fetch(`https://api.github.com/users/${username}/repos`));
+            
+        });      
+    })
+    .catch(err => console.error(err));
 }
